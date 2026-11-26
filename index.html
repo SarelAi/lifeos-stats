@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ru" data-src="stats.json">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>*{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>LifeOS в цифрах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a live board. Row 1: product users (hero odometer) + four KPI tiles.
+   Row 2: dotted world map beside the country leaderboard. Row 3: daily visitors chart beside ad economics by country.
+   Row 4: retention. Single dark look by choice. */
+:root {
+  color-scheme: dark;
+  --bg: #0c0b0a;
+  --panel: #151311;
+  --panel-hi: #1b1916;
+  --line: #2a2622;
+  --grid: #221f1c;
+  --land: #2e2a26;
+  --ink: #f5f1eb;
+  --ink-2: #aaa197;
+  --ink-3: #6f6860;
+  --accent: #ff6b21;
+  --accent-dim: #3a1e0f;
+  --live: #3ccf91;
+  --font-display: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  --r: 18px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0; color: var(--ink); background: var(--bg);
+  background-image: radial-gradient(900px 420px at 12% -8%, #2a160b 0%, transparent 70%);
+  font: 400 14px/1.45 var(--font-display); font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;
+  padding-block: 20px 22px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.cap { font: 500 11.5px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.sub { color: var(--ink-3); font-size: 12.5px; }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 600 17px/1 var(--font-display); letter-spacing: -.01em; }
+.logo { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #140a04; font: 700 13px/1 var(--font-display); }
+.brand small { color: var(--ink-3); font-weight: 400; font-size: 14px; }
+.live { display: inline-flex; align-items: center; gap: 8px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--ink-2); font: 500 12px/1 var(--font-mono); }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--live); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(60,207,145,.55); } 70% { box-shadow: 0 0 0 7px rgba(60,207,145,0); } 100% { box-shadow: 0 0 0 0 rgba(60,207,145,0); } }
+.spacer { flex: 1; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.seg button { font: 500 12.5px/1 var(--font-display); color: var(--ink-2); background: none; border: 0; padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* grid */
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; min-width: 0; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.head h2 { margin: 0 0 4px; font: 600 16px/1.2 var(--font-display); letter-spacing: -.01em; text-wrap: balance; }
+
+.hero { grid-column: span 5; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; right: -80px; bottom: -120px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, #ff6b2133 0%, transparent 65%); pointer-events: none; }
+.kpis { grid-column: span 7; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kpi { display: flex; flex-direction: column; gap: 8px; justify-content: space-between; }
+.kpi .v { font: 600 clamp(26px, 2.6vw, 34px)/1 var(--font-display); letter-spacing: -.02em; }
+.kpi .s { color: var(--ink-3); font-size: 12.5px; }
+.u { font-size: .55em; color: var(--ink-2); font-weight: 500; margin-left: 2px; }
+
+.odo { font: 600 clamp(84px, 9vw, 132px)/1 var(--font-display); letter-spacing: -.05em; white-space: nowrap; margin-left: -.03em; }
+.odo .digit { display: inline-block; height: 1em; overflow: hidden; vertical-align: top; }
+.odo .col { display: block; transform: translateY(calc(var(--d) * -1em)); animation: roll 1.8s cubic-bezier(.16, .8, .1, 1) both; animation-delay: calc(var(--i) * 110ms); }
+.odo .col span { display: block; height: 1em; }
+.odo .sep { display: inline-block; width: .14em; }
+@keyframes roll { from { transform: translateY(0); } }
+.hero-foot { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; color: var(--ink-2); font-size: 13px; position: relative; z-index: 1; }
+.tag { font: 500 11.5px/1 var(--font-mono); padding: 5px 8px; border-radius: 6px; background: var(--accent-dim); color: var(--accent); }
+.minis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; position: relative; z-index: 1; }
+.mini { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mini .v { font: 600 22px/1.1 var(--font-display); letter-spacing: -.01em; }
+
+/* map */
+.mapcard { grid-column: span 8; display: flex; flex-direction: column; gap: 12px; }
+.map { position: relative; flex: 1; min-height: 240px; display: flex; align-items: center; }
+.map canvas { display: block; width: 100%; }
+.map .msg { color: var(--ink-3); font-size: 13px; width: 100%; text-align: center; }
+.pin { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(255,107,33,.25); pointer-events: none; }
+.pin::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid var(--accent); opacity: 0; animation: ring 2.4s ease-out infinite; animation-delay: var(--dl, 0s); }
+@keyframes ring { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+.plabel { position: absolute; transform: translate(10px, -50%); pointer-events: none; white-space: nowrap; font-size: 11.5px; color: var(--ink); background: rgba(12,11,10,.72); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.plabel b { font-weight: 600; margin-left: 4px; color: var(--accent); }
+.regions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.region { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.region .v { font: 600 20px/1 var(--font-display); }
+.region .bar { margin-top: 2px; }
+
+/* tooltip shared by chart and map */
+.tip { position: absolute; z-index: 5; pointer-events: none; transform: translate(-50%, calc(-100% - 12px)); background: var(--panel-hi); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; white-space: nowrap; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+.tip b { display: block; font-size: 15px; font-weight: 600; }
+.tip span { color: var(--ink-3); }
+
+/* countries */
+.countries { grid-column: span 4; display: flex; flex-direction: column; gap: 10px; }
+.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 62px 42px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--grid); }
+.row:first-child { border-top: 0; }
+.flag { font: 18px/1 var(--font-emoji); text-align: center; }
+.code { font: 500 11px/1 var(--font-mono); color: var(--ink-2); background: var(--panel-hi); border: 1px solid var(--line); border-radius: 5px; padding: 4px 0; text-align: center; }
+.mid { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 4px; border-radius: 2px; background: var(--grid); overflow: hidden; display: block; }
+.bar i { display: block; height: 100%; width: var(--w); background: var(--accent); border-radius: 2px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+.row.ru .bar i { background: var(--ink-3); }
+.val { text-align: right; font-weight: 600; }
+.pct { text-align: right; color: var(--ink-3); font: 500 12px/1 var(--font-mono); }
+
+/* chart */
+.leftcol { grid-column: span 7; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.chart { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.plot { position: relative; flex: 1; min-height: 240px; }
+.plot svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* funnel */
+.funnel { display: flex; flex-direction: column; gap: 12px; }
+.steps { display: grid; grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr) 100px minmax(0, 1fr); align-items: stretch; }
+.step { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: var(--panel-hi); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.step .v { font: 600 24px/1 var(--font-display); letter-spacing: -.01em; }
+.step .pr { font-size: 13px; color: var(--ink-2); }
+.step .pr b { color: var(--ink); font-weight: 600; }
+.step.hl .pr b { color: var(--live); }
+.loss { color: var(--ink-2); font-size: 13px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-hi); }
+.loss b { color: var(--ink); font-weight: 600; }
+.arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--ink-3); }
+.arrow .p { font: 600 15px/1 var(--font-display); color: var(--live); }
+.arrow .l { font: 500 10px/1.2 var(--font-mono); letter-spacing: .02em; text-transform: uppercase; text-align: center; }
+.arrow svg { width: 40px; height: 10px; }
+
+/* ads */
+.ads { grid-column: span 5; display: flex; flex-direction: column; gap: 12px; }
+.adk { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.adk div { display: flex; flex-direction: column; gap: 6px; background: var(--panel-hi); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.adk .v { font: 600 20px/1 var(--font-display); letter-spacing: -.01em; }
+.adk .cap { font-size: 10.5px; line-height: 1.25; }
+.adk .hl { border-color: #5a2a10; }
+.adk .hl .v { color: var(--accent); }
+.atable { display: flex; flex-direction: column; }
+.arow { display: grid; grid-template-columns: 30px minmax(0, 1fr) 64px 58px 60px; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid var(--grid); }
+.arow.h { border-top: 0; padding-top: 0; color: var(--ink-3); font: 500 11px/1.25 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; align-items: end; }
+.arow .r { text-align: right; }
+.arow .good { color: var(--live); font-weight: 600; }
+.arow .mid-v { font-weight: 600; }
+
+/* retention */
+.ret { display: flex; flex-direction: column; gap: 12px; }
+.ret-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 10px 14px; background: var(--panel-hi); border: 1px solid var(--line); border-radius: 12px; }
+.ret-big { font: 600 24px/1 var(--font-display); }
+.ret-big .u { font-size: .6em; }
+.ret-table { display: flex; flex-direction: column; min-width: 0; }
+.ret-head, .ret-row { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.ret-head { padding-bottom: 6px; color: var(--ink-3); font-size: 12px; }
+.ret-head b { display: block; font: 500 12px/1.2 var(--font-mono); color: var(--ink-2); letter-spacing: .06em; }
+.ret-head i { font-style: normal; }
+.ret-row { padding: 9px 0; border-top: 1px solid var(--grid); align-items: center; }
+.ret-row .lbl { color: var(--ink-2); font-size: 13px; }
+.cell { display: flex; flex-direction: column; gap: 4px; }
+.cell .p { font: 600 16px/1 var(--font-display); }
+.cell .n { color: var(--ink-3); font: 500 11px/1 var(--font-mono); }
+.cell .bar i { background: var(--live); }
+
+.foot { color: var(--ink-3); font-size: 12px; line-height: 1.55; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+
+@media (prefers-reduced-motion: reduce) { .odo .col, .pulse, .bar i, .pin::after { animation: none; transition: none; } }
+@media (max-width: 1080px) {
+  .hero, .kpis, .mapcard, .countries, .leftcol, .ads { grid-column: span 12; }
+}
+@media (max-width: 620px) {
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .arrow { flex-direction: row; gap: 8px; padding: 6px 0; }
+  .arrow svg { transform: rotate(90deg); width: 24px; }
+  .regions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .adk { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plabel { display: none; }
+}
+@media (max-width: 520px) {
+  .card { padding: 16px; }
+  .kpis { gap: 10px; }
+  .plot { min-height: 220px; }
+  .row { grid-template-columns: 28px minmax(0, 1fr) 54px 38px; gap: 8px; }
+  .arow { grid-template-columns: 26px minmax(0, 1fr) 54px 48px 52px; gap: 6px; font-size: 13px; }
+  .ret-head, .ret-row { grid-template-columns: minmax(0, 1.1fr) repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .live { order: 3; }
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true">L</span>LifeOS <small id="tagline"></small></div>
+    <span class="live"><span class="pulse" aria-hidden="true"></span><span id="stamp"></span></span>
+    <span class="spacer"></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="lang-ru" data-lang="ru" aria-pressed="true">RU</button>
+      <button type="button" id="lang-en" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <section class="grid">
+    <article class="card hero">
+      <div class="cap" data-t="usersCap"></div>
+      <div class="odo" id="odo" role="img"></div>
+      <div class="hero-foot"><span class="tag" id="usersTag"></span><span id="usersSub"></span></div>
+      <div class="minis">
+        <div class="mini"><div class="cap" data-t="m1c"></div><div class="v" id="m1"></div></div>
+        <div class="mini"><div class="cap" data-t="m2c"></div><div class="v" id="m2"></div></div>
+        <div class="mini"><div class="cap" data-t="m3c"></div><div class="v" id="m3"></div></div>
+      </div>
+    </article>
+
+    <div class="kpis">
+      <article class="card kpi"><div class="cap" data-t="k1"></div><div class="v" id="k1"></div><div class="s" id="k1s"></div></article>
+      <article class="card kpi"><div class="cap" data-t="k2"></div><div class="v" id="k2"></div><div class="s" data-t="k2s"></div></article>
+      <article class="card kpi"><div class="cap" data-t="k3"></div><div class="v" id="k3"></div><div class="s" data-t="k3s"></div></article>
+      <article class="card kpi"><div class="cap" data-t="k4"></div><div class="v" id="k4"></div><div class="s" id="k4s"></div></article>
+    </div>
+
+    <article class="card mapcard">
+      <div class="head"><div><h2 data-t="mapTitle"></h2><div class="sub" id="mapSub"></div></div></div>
+      <div class="map" id="map"><div class="msg" id="mapMsg"></div><div class="tip" id="mapTip" hidden></div></div>
+      <div class="regions" id="regions"></div>
+    </article>
+
+    <article class="card countries">
+      <div class="head">
+        <div><h2 data-t="cTitle"></h2><div class="sub" id="cSub"></div></div>
+        <div class="seg" role="group" id="tabs" aria-label="Period">
+          <button type="button" id="tab-all" data-p="all" aria-pressed="true"></button>
+          <button type="button" id="tab-week" data-p="week" aria-pressed="false"></button>
+          <button type="button" id="tab-today" data-p="today" aria-pressed="false"></button>
+        </div>
+      </div>
+      <ol class="rows" id="rows"></ol>
+    </article>
+
+    <div class="leftcol">
+    <article class="card chart">
+      <div class="head"><div><h2 data-t="chartTitle"></h2><div class="sub" id="chartSub"></div></div></div>
+      <div class="plot" id="plot"><div class="tip" id="tip" hidden></div></div>
+    </article>
+
+    <article class="card ret">
+      <div class="head"><div><h2 data-t="rTitle"></h2><div class="sub" data-t="rNote"></div></div></div>
+      <div class="ret-top"><span class="cap" data-t="rCap"></span><span class="ret-big" id="rBig"></span><span class="sub" id="rBase"></span></div>
+      <div class="ret-table" role="table" aria-label="D1 D7 D30">
+        <div class="ret-head" role="row">
+          <span role="columnheader"></span>
+          <span role="columnheader"><b>D1</b><i data-t="d1h"></i></span>
+          <span role="columnheader"><b>D7</b><i data-t="d7h"></i></span>
+          <span role="columnheader"><b>D30</b><i data-t="d30h"></i></span>
+        </div>
+        <div class="ret-row" role="row" id="rAll"></div>
+        <div class="ret-row" role="row" id="rWrote"></div>
+      </div>
+    </article>
+
+    <article class="card funnel">
+      <div class="head"><div><h2 data-t="fTitle"></h2><div class="sub" id="fSub"></div></div></div>
+      <div class="steps" id="steps"></div>
+      <div class="loss" id="fLoss"></div>
+      <div class="sub" id="fNote"></div>
+    </article>
+    </div>
+
+    <article class="card ads">
+      <div class="head"><div><h2 data-t="aTitle"></h2><div class="sub" id="aSub"></div></div></div>
+      <div class="adk">
+        <div class="hl"><span class="cap" data-t="aReg"></span><span class="v" id="aReg"></span></div>
+        <div><span class="cap" data-t="aStart"></span><span class="v" id="aStart"></span></div>
+        <div><span class="cap" data-t="aConv"></span><span class="v" id="aConv"></span></div>
+        <div><span class="cap" data-t="aSpend"></span><span class="v" id="aSpend"></span></div>
+      </div>
+      <div class="atable" id="atable"></div>
+      <div class="sub" id="aNote"></div>
+    </article>
+
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<!-- Data. The scheduled refresh changes only updatedAt, visitorsTotal, daily, periods and map. -->
+<script type="application/json" id="data">
+{
+  "updatedAt": "2026-11-26T17:37:00+04:00",
+  "users": { "value": 751, "asOf": "2026-11-26", "active30": 359, "active7": 169, "messages": 9000,
+    "returned": [81, 696],
+    "retention": {
+      "all":    { "d1": [45, 696], "d7": [13, 517], "d30": [7, 63] },
+      "wrote":  { "d1": [40, 341], "d7": [8, 232],  "d30": [6, 43] }
+    }
+  },
+  "ads": {
+    "asOf": "2026-11-26", "from": "2026-10-08", "rate": 82,
+    "spendRub": 248078.00, "googleUsd": 193.86, "googleFrom": "2026-11-26", "regs": 751, "preAds": 100, "adsStart": "2026-10-24",
+    "funnel": { "visitors": 21335, "clicksDirect": 17619, "clicksGoogle": 122, "started": 2041 },
+    "rows": [
+      ["RU",152474.63,558,9.21,0],["KZ",33273.18,584,19.38,0],["IL",14452.00,102,6.24,0],["NL",5304.04,42,20.56,19.69],["AE",5912.27,25,2.16,0],
+      ["UZ",5270.61,98,6.27,0],["GB",2775.84,22,15.86,0],["DE",456.04,75,4.87,24.51],["FR",2397.92,20,11.83,0],["PL",2277.61,28,16.20,0],
+      ["IE",207.70,11,17.19,23.26],["US",0,17,5.72,24.42],["RS",1703.66,10,19.23,0],["LT",929.31,18,8.57,9.24],["AM",1612.16,35,9.84,0]
+    ]
+  },
+  "since": "2026-10-08",
+  "visitorsTotal": 21623,
+  "countriesLabel": "60+",
+  "daily": [["2026-10-20",11],["2026-10-21",3],["2026-10-22",130],["2026-10-23",179],["2026-10-24",603],["2026-10-25",562],["2026-10-26",88],["2026-10-27",103],["2026-10-28",569],["2026-10-29",823],["2026-10-30",1287],["2026-10-31",497],["2026-11-01",657],["2026-11-02",807],["2026-11-03",374],["2026-11-04",138],["2026-11-05",299],["2026-11-06",157],["2026-11-07",188],["2026-11-08",839],["2026-11-09",476],["2026-11-10",591],["2026-11-11",633],["2026-11-12",940],["2026-11-13",703],["2026-11-14",129],["2026-11-15",17],["2026-11-16",75],["2026-11-17",120],["2026-11-18",92],["2026-11-19",913],["2026-11-20",1676],["2026-11-21",1408],["2026-11-22",1687],["2026-11-23",1738],["2026-11-24",982],["2026-11-25",1112],["2026-11-26",1413]],
+  "periods": {"all":{"visitors":20980,"rows":[["RU",5719],["KZ",2857],["DE",1951],["GE",1905],["FI",1781],["IL",1493],["UZ",1477],["AE",897],["AM",390],["US",301],["PL",201],["LT",194],["NL",193],["BG",160],["FR",147]]},"week":{"visitors":9239,"rows":[["KZ",1872],["FI",1504],["IL",1465],["GE",1084],["AE",883],["PL",191],["LT",188],["RU",171],["NL",170],["BG",155],["FR",139],["GR",137],["QA",121],["OM",114],["IT",112]]},"today":{"visitors":1394,"rows":[["GE",691],["KZ",152],["IL",151],["AE",93],["FI",56],["DE",39],["OM",23],["NL",23],["QA",21],["US",21],["RU",20],["BG",9],["CA",8],["PL",8],["AU",7]]}},
+  "map": [["RU",5719],["KZ",2857],["DE",1951],["GE",1905],["FI",1781],["IL",1493],["UZ",1477],["AE",897],["AM",390],["US",301],["PL",201],["LT",194],["NL",193],["BG",160],["FR",147],["GR",139],["QA",126],["GB",125],["OM",120],["IT",118],["ES",86],["CZ",81],["IE",65],["SE",53],["SK",42],["NO",42],["RS",41],["CH",37],["HU",37],["PT",34],["BE",34],["AT",26],["DK",25],["CY",23],["BY",19],["SI",18],["SA",16],["HR",13],["AU",13],["CA",12],["SG",11],["CN",10],["BA",9],["IN",6],["NZ",4],["BR",3],["KG",3],["LU",3],["KR",3],["TR",3],["AL",2],["MD",2],["TH",2],["VN",1],["NP",1],["AZ",1],["AR",1],["BD",1],["EG",1],["IR",1],["LB",1],["MY",1],["RO",1]]
+}
+</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById('data').textContent);
+  var DATA_URL = document.documentElement.getAttribute('data-src') || 'stats.json';
+  var REFRESH_MS = 60 * 1000;
+  var SHORT = { AE:['ОАЭ','UAE'], US:['США','USA'], GB:['Великобритания','United Kingdom'], KR:['Южная Корея','South Korea'], BA:['Босния','Bosnia'], CZ:['Чехия','Czechia'] };
+  var REGIONS = [
+    { k: 'rRU', c: ['RU'] },
+    { k: 'rCIS', c: ['KZ','UZ','AM','GE','BY','KG','AZ','TJ','TM','MD'] },
+    { k: 'rEU', c: ['DE','FI','PL','LT','NL','BG','FR','GR','GB','IT','ES','CZ','IE','SE','SK','NO','RS','CH','HU','PT','BE','AT','DK','CY','SI','HR','BA','LV','EE','RO','UA','ME','MK','AL','LU','IS','MT'] },
+    { k: 'rME', c: ['IL','AE','QA','OM','SA','TR','BH','KW','JO','EG','LB'] }
+  ];
+  var MON = {
+    ru: ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],
+    ruFull: ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],
+    en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  };
+  var T = {
+    ru: {
+      tagline: 'метрики роста', usersCap: 'Пользователи продукта', usersTag: 'на {d}', usersSub: 'зарегистрированы в приложении',
+      m1c: 'Активны за 30 дней', m2c: 'Активны за 7 дней', m3c: 'Сообщений с 1 октября', k: 'тыс',
+      k1: 'Посетители сайтов', k1s: 'уникальные, с {d}', k2: 'Стран', k2s: 'откуда приходят на сайты',
+      k3: 'Вне России', k3s: 'доля посетителей за всё время', k4: 'Сегодня', k4s: 'посетителей к {t}',
+      mapTitle: 'Откуда приходят на сайты', mapSub: 'Посетители за всё время, {n} стран на карте',
+      rRU: 'Россия', rCIS: 'СНГ и Кавказ', rEU: 'Европа', rME: 'Ближний Восток', rOther: 'Другие',
+      cTitle: 'Посетители по странам', cSub: 'Топ-15, {n} посетителей за период',
+      all: 'Всё время', week: '7 дней', today: 'Сегодня',
+      chartTitle: 'Посетители сайтов по дням', chartSub: 'Уникальные посетители, {a} – {b}. Сегодня день ещё идёт.',
+      aTitle: 'Реклама по странам', aSub: 'Яндекс Директ с {a}, Google Реклама с {g}, по {b}, в долларах',
+      aReg: 'Цена пользователя', aStart: 'Цена начала регистрации', aConv: 'Конверсия в начало', aSpend: 'Расход',
+      hCountry: 'Страна', hSpend: 'Расход', hConv: 'Конв.', hStart: 'Начало',
+      aNote: 'Начало регистрации: переход на страницу входа в продукт, считаются все посетители страны. Цена пользователя: весь расход на {r} регистраций от рекламы, примерно {p} пришедших сами не учтены. Расход Директа без НДС по курсу {x} ₽ за $, расход Google из кабинета в долларах. Зелёным цена начала ниже средней.',
+      fTitle: 'Путь от посетителя до пользователя', fSub: 'Все сайты LifeOS и вся реклама, {a} – {b}',
+      fVis: 'Посетили сайты', fStart: 'Начали регистрацию', fReg: 'Зарегистрировались',
+      fClick: 'цена клика', fStartP: 'цена', fRegP: 'цена пользователя', fClicks: '{n} кликов по рекламе', fAds: '≈{n} от рекламы, без примерно {p} пришедших сами',
+      fLossB: 'Почему до регистрации доходит треть начавших.', fLoss: 'Мешают проблемы сайта prod: он бывает недоступен, в части стран открывается только через VPN, медленно загружается. Потери на этапе регистрации дорабатываем.', conv: 'конверсия',
+      fNote: 'Посетители и начавшие регистрацию считаются людьми, по Яндекс Метрике: начало регистрации это переход на страницу входа в продукт. Регистрации из продуктового дашборда. Цены: весь расход на рекламу (Директ без НДС по курсу {x} ₽ за $ и Google) на клики, на начавших и на {r} пользователей от рекламы: из всех регистраций вычтены примерно {p} человек, которые пришли сами.',
+      rCap: 'Вернулись в другой день', rBase: '{a} из {b} зарегистрированных', rTitle: 'Возврат после регистрации',
+      d1h: 'на следующий день', d7h: 'на 7-й день', d30h: 'на 30-й день', of: 'из',
+      rAll: 'Все зарегистрированные', rWrote: 'Написали в день регистрации',
+      rNote: 'Доля тех, у кого с регистрации прошло нужное число дней. D30 пока на небольшой группе.',
+      stamp: 'Обновлено {d}, {t} · {ago}', ago: ['только что', '{n} мин назад', '{n} ч назад', '{n} дн. назад'],
+      tipToday: 'сегодня, неполный день', visitors: 'посетителей', noVisitors: 'посетителей пока нет',
+      mapFail: 'Карта не загрузилась. Цифры по странам справа.',
+      foot: ['Посетители и страны: Яндекс Метрика, все сайты LifeOS, с {since}', 'Пользователи: продуктовый дашборд LifeOS, на {asOf}', 'Реклама: Яндекс Директ, Google Реклама и Метрика, на {ads}', 'Время: Тбилиси, GMT+4'],
+      odo: 'пользователей'
+    },
+    en: {
+      tagline: 'growth metrics', usersCap: 'Product users', usersTag: 'as of {d}', usersSub: 'registered in the app',
+      m1c: 'Active, 30 days', m2c: 'Active, 7 days', m3c: 'Messages since Oct 1', k: 'k',
+      k1: 'Website visitors', k1s: 'unique, since {d}', k2: 'Countries', k2s: 'where site visitors come from',
+      k3: 'Outside Russia', k3s: 'share of visitors, all time', k4: 'Today', k4s: 'visitors by {t}',
+      mapTitle: 'Where website visitors come from', mapSub: 'All-time visitors, {n} countries on the map',
+      rRU: 'Russia', rCIS: 'CIS and Caucasus', rEU: 'Europe', rME: 'Middle East', rOther: 'Other',
+      cTitle: 'Visitors by country', cSub: 'Top 15, {n} visitors in period',
+      all: 'All time', week: '7 days', today: 'Today',
+      chartTitle: 'Website visitors per day', chartSub: 'Unique visitors, {a} – {b}. Today is still in progress.',
+      aTitle: 'Advertising by country', aSub: 'Yandex Direct since {a}, Google Ads since {g}, through {b}, in US dollars',
+      aReg: 'Cost per user', aStart: 'Cost per sign-up start', aConv: 'Start conversion', aSpend: 'Spend',
+      hCountry: 'Country', hSpend: 'Spend', hConv: 'Conv.', hStart: 'Start',
+      aNote: 'Sign-up start: a visit to the product login page, counting all visitors from the country. Cost per user: total spend over {r} sign-ups from advertising; about {p} organic sign-ups are excluded. Yandex Direct spend excludes VAT and is converted at {x} RUB per $; Google Ads spend is taken in dollars from the account. Green: start cost below average.',
+      fTitle: 'From visitor to user', fSub: 'All LifeOS websites and all advertising, {a} – {b}',
+      fVis: 'Visited the websites', fStart: 'Started sign-up', fReg: 'Signed up',
+      fClick: 'cost per click', fStartP: 'cost', fRegP: 'cost per user', fClicks: '{n} ad clicks', fAds: '≈{n} from advertising, excluding about {p} organic',
+      fLossB: 'Why only a third of starters finish sign-up.', fLoss: 'Issues with the prod site get in the way: it is sometimes unavailable, in some countries it opens only through a VPN, and it loads slowly. We are reducing the drop-off at the sign-up step.', conv: 'conversion',
+      fNote: 'Visitors and sign-up starters are counted as people in Yandex Metrica; a sign-up start is a visit to the product login page. Sign-ups come from the product dashboard. Costs: total ad spend (Yandex Direct excluding VAT at {x} RUB per $, plus Google) per click, per starter and per {r} users from advertising: about {p} people who came on their own are excluded from all sign-ups.',
+      rCap: 'Came back on another day', rBase: '{a} of {b} registered users', rTitle: 'Return after sign-up',
+      d1h: 'next day', d7h: 'day 7', d30h: 'day 30', of: 'of',
+      rAll: 'All registered users', rWrote: 'Wrote on sign-up day',
+      rNote: 'Share of users whose sign-up was at least that many days ago. D30 is still based on a small group.',
+      stamp: 'Updated {d}, {t} · {ago}', ago: ['just now', '{n} min ago', '{n} h ago', '{n} d ago'],
+      tipToday: 'today, in progress', visitors: 'visitors', noVisitors: 'no visitors yet',
+      mapFail: 'The map did not load. Country figures are on the right.',
+      foot: ['Visitors and countries: Yandex Metrica, all LifeOS websites, since {since}', 'Users: LifeOS product dashboard, as of {asOf}', 'Advertising: Yandex Direct, Google Ads and Metrica, as of {ads}', 'Time: Tbilisi, GMT+4'],
+      odo: 'users'
+    }
+  };
+  var lang = 'ru', period = 'all';
+  try { var s = localStorage.getItem('lifeos-board-lang'); if (s === 'en' || s === 'ru') lang = s; } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+  function fill(str, o) { return str.replace(/\{(\w+)\}/g, function (_, k) { return o[k]; }); }
+  function loc() { return lang === 'ru' ? 'ru-RU' : 'en-US'; }
+  function num(n) { return n.toLocaleString(loc()); }
+  function dec(v, d) { return v.toLocaleString(loc(), { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function usd(v, d) { return '$' + dec(v, d); }
+  function parts(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso); return { d: +m[3], m: +m[2] - 1 }; }
+  function dShort(iso) { var p = parts(iso); return lang === 'ru' ? p.d + ' ' + MON.ru[p.m] : MON.en[p.m] + ' ' + p.d; }
+  function dLong(iso) { var p = parts(iso); return lang === 'ru' ? p.d + ' ' + MON.ruFull[p.m] : MON.en[p.m] + ' ' + p.d; }
+  function hhmm(iso) { return /T(\d{2}:\d{2})/.exec(iso)[1]; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var DN = {};
+  function name(c) {
+    if (SHORT[c]) return SHORT[c][lang === 'ru' ? 0 : 1];
+    try { DN[lang] = DN[lang] || new Intl.DisplayNames([lang], { type: 'region' }); return DN[lang].of(c) || c; } catch (e) { return c; }
+  }
+
+  /* flags: emoji where the system draws them in colour, a code chip elsewhere (e.g. Windows) */
+  var FLAGS = (function () {
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 24; var x = c.getContext('2d');
+      x.textBaseline = 'top'; x.font = '18px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      x.fillText('🇩🇪', 0, 0);
+      var d = x.getImageData(0, 0, 24, 24).data;
+      for (var i = 0; i < d.length; i += 4) if (d[i + 3] > 100 && Math.abs(d[i] - d[i + 2]) > 60) return true;
+    } catch (e) {}
+    return false;
+  })();
+  function flag(code) {
+    if (FLAGS && /^[A-Z]{2}$/.test(code)) return el('span', 'flag', String.fromCodePoint(127397 + code.charCodeAt(0), 127397 + code.charCodeAt(1)));
+    return el('span', 'code', code);
+  }
+
+  function odometer(n) {
+    var box = $('odo'), str = String(n);
+    box.textContent = '';
+    box.setAttribute('aria-label', num(n) + ' ' + T[lang].odo);
+    for (var k = 0; k < str.length; k++) {
+      if (k > 0 && (str.length - k) % 3 === 0) box.appendChild(el('span', 'sep', lang === 'en' ? ',' : ''));
+      var dg = el('span', 'digit'), col = el('span', 'col');
+      col.style.setProperty('--d', str[k]); col.style.setProperty('--i', k);
+      for (var j = 0; j < 10; j++) col.appendChild(el('span', '', j));
+      dg.appendChild(col); box.appendChild(dg);
+    }
+  }
+
+  function stamp() {
+    var t = T[lang], mins = Math.max(0, Math.floor((Date.now() - Date.parse(D.updatedAt)) / 60000));
+    var ago = mins < 2 ? t.ago[0] : mins < 60 ? fill(t.ago[1], { n: mins }) : mins < 1440 ? fill(t.ago[2], { n: Math.floor(mins / 60) }) : fill(t.ago[3], { n: Math.floor(mins / 1440) });
+    $('stamp').textContent = fill(t.stamp, { d: dShort(D.updatedAt), t: hhmm(D.updatedAt), ago: ago });
+  }
+
+  function share(p) {
+    var P = D.periods[p], ru = 0;
+    P.rows.forEach(function (r) { if (r[0] === 'RU') ru = r[1]; });
+    return Math.round((1 - ru / P.visitors) * 100);
+  }
+  function bar(w, cls) { var b = el('span', 'bar' + (cls ? ' ' + cls : '')), i = el('i'); i.style.setProperty('--w', w.toFixed(1) + '%'); b.appendChild(i); return b; }
+
+  function rows() {
+    var P = D.periods[period], ol = $('rows'), max = P.rows[0][1];
+    ol.textContent = '';
+    P.rows.forEach(function (r) {
+      var li = el('li', 'row' + (r[0] === 'RU' ? ' ru' : ''));
+      li.appendChild(flag(r[0]));
+      var mid = el('div', 'mid'); mid.appendChild(el('span', 'nm', name(r[0]))); mid.appendChild(bar(r[1] / max * 100)); li.appendChild(mid);
+      li.appendChild(el('span', 'val', num(r[1])));
+      li.appendChild(el('span', 'pct', Math.round(r[1] / P.visitors * 100) + '%'));
+      ol.appendChild(li);
+    });
+    $('cSub').textContent = fill(T[lang].cSub, { n: num(P.visitors) });
+    ['all', 'week', 'today'].forEach(function (p) { $('tab-' + p).setAttribute('aria-pressed', String(p === period)); });
+  }
+
+  /* ---------- world map, dots ---------- */
+  var MAPURL = 'https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js';
+  var GEO = null, MW = 900, MH = 441, STEP = 4.6, mapFailed = false;
+  function loadWorld(cb) {
+    if (window.__lifeosWorld) return cb(window.__lifeosWorld);
+    window.jsVectorMap = { addMap: function (n, m) { window.__lifeosWorld = m; } };
+    var sc = document.createElement('script'); sc.src = MAPURL; sc.async = true;
+    sc.onload = function () { cb(window.__lifeosWorld || null); };
+    sc.onerror = function () { cb(null); };
+    document.head.appendChild(sc);
+  }
+  function prep(world) {
+    MW = world.width; MH = Math.ceil(world.height);
+    var codes = Object.keys(world.paths).filter(function (c) { return c !== 'AQ'; });
+    var paths = codes.map(function (c) { return new Path2D(world.paths[c].path); });
+    var cv = document.createElement('canvas'); cv.width = MW; cv.height = MH;
+    var cx = cv.getContext('2d', { willReadFrequently: true });
+    codes.forEach(function (c, i) { var id = i + 1; cx.fillStyle = 'rgb(' + (id & 255) + ',' + (id >> 8) + ',7)'; cx.fill(paths[i]); });
+    var img = cx.getImageData(0, 0, MW, MH).data;
+    function idAt(x, y) {
+      x = Math.round(x); y = Math.round(y);
+      if (x < 0 || y < 0 || x >= MW || y >= MH) return 0;
+      var o = (y * MW + x) * 4; if (img[o + 3] === 0) return 0;
+      var id = img[o] + (img[o + 1] << 8);
+      if (id > 0 && id <= codes.length && img[o + 3] === 255 && cx.isPointInPath(paths[id - 1], x, y)) return id;
+      for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
+        var xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= MW || yy >= MH) continue;
+        var q = (yy * MW + xx) * 4, j = img[q] + (img[q + 1] << 8);
+        if (img[q + 3] === 255 && j > 0 && j <= codes.length && cx.isPointInPath(paths[j - 1], x, y)) return j;
+      }
+      return -1;
+    }
+    var cent = {}, acc = {};
+    for (var y = 0; y < MH; y += 2) for (var x = 0; x < MW; x += 2) {
+      var o = (y * MW + x) * 4; if (img[o + 3] !== 255) continue;
+      var id = img[o] + (img[o + 1] << 8); if (id < 1 || id > codes.length) continue;
+      var a = acc[id] || (acc[id] = [0, 0, 0]); a[0] += x; a[1] += y; a[2]++;
+    }
+    Object.keys(acc).forEach(function (id) { var a = acc[id]; cent[codes[id - 1]] = [a[0] / a[2], a[1] / a[2]]; });
+    var dots = [];
+    for (var gy = STEP / 2; gy < MH; gy += STEP) for (var gx = STEP / 2; gx < MW; gx += STEP) {
+      var r = idAt(gx, gy); if (r === 0) continue;
+      dots.push([gx, gy, r > 0 ? codes[r - 1] : null]);
+    }
+    GEO = { codes: codes, idAt: idAt, cent: cent, dots: dots };
+  }
+  function mapData() { var m = {}; D.map.forEach(function (r) { m[r[0]] = r[1]; }); return m; }
+  function drawMap() {
+    var box = $('map'), msg = $('mapMsg');
+    var old = box.querySelector('canvas'); if (old) old.remove();
+    box.querySelectorAll('.pin,.plabel').forEach(function (e) { e.remove(); });
+    if (mapFailed) { msg.textContent = T[lang].mapFail; return; }
+    if (!GEO) return;
+    msg.textContent = '';
+    var W = box.clientWidth, s = W / MW, H = Math.round(MH * s), dpr = Math.min(2, window.devicePixelRatio || 1);
+    var cv = el('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + 'px';
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', T[lang].mapTitle);
+    var x = cv.getContext('2d'); x.scale(dpr * s, dpr * s);
+    var css = getComputedStyle(document.documentElement);
+    var land = css.getPropertyValue('--land').trim() || '#2e2a26';
+    var M = mapData(), vmax = 0; Object.keys(M).forEach(function (c) { vmax = Math.max(vmax, M[c]); });
+    var lmax = Math.log(vmax + 1), r = STEP * 0.34;
+    x.fillStyle = land; x.beginPath();
+    GEO.dots.forEach(function (d) { if (!M[d[2]]) { x.moveTo(d[0] + r, d[1]); x.arc(d[0], d[1], r, 0, Math.PI * 2); } });
+    x.fill();
+    GEO.dots.forEach(function (d) {
+      var v = M[d[2]]; if (!v) return;
+      var t = Math.log(v + 1) / lmax;
+      x.fillStyle = 'rgba(255,' + Math.round(150 - 43 * t) + ',' + Math.round(90 - 57 * t) + ',' + (0.35 + 0.65 * t).toFixed(2) + ')';
+      x.beginPath(); x.arc(d[0], d[1], r * (0.9 + 0.35 * t), 0, Math.PI * 2); x.fill();
+    });
+    box.insertBefore(cv, box.firstChild);
+    var top = D.map.slice().sort(function (a, b) { return b[1] - a[1]; });
+    var top = top.filter(function (r) { return GEO.cent[r[0]]; }).slice(0, 8);
+    var off = cv.offsetTop, placed = [];
+    top.forEach(function (rr, i) {
+      var c = GEO.cent[rr[0]], px = c[0] * s, py = c[1] * s + off;
+      var pin = el('span', 'pin'); pin.style.left = px + 'px'; pin.style.top = py + 'px'; pin.style.setProperty('--dl', (i * 0.3) + 's'); box.appendChild(pin);
+      if (i >= 6) return;
+      var lb = el('span', 'plabel', name(rr[0])); lb.appendChild(el('b', '', num(rr[1])));
+      box.appendChild(lb);
+      var w = lb.offsetWidth, h = lb.offsetHeight;
+      var spots = [[px + 10, py - h / 2], [px - 10 - w, py - h / 2], [px - w / 2, py - h - 10], [px - w / 2, py + 10]], ok = null;
+      for (var k = 0; k < spots.length && !ok; k++) {
+        var bx = spots[k][0], by = spots[k][1];
+        if (bx < 0 || bx + w > W) continue;
+        var hit = placed.some(function (p) { return bx < p[0] + p[2] + 4 && bx + w + 4 > p[0] && by < p[1] + p[3] + 3 && by + h + 3 > p[1]; });
+        if (!hit) ok = [bx, by];
+      }
+      if (!ok) { lb.remove(); return; }
+      placed.push([ok[0], ok[1], w, h]);
+      lb.style.transform = 'none'; lb.style.left = ok[0] + 'px'; lb.style.top = ok[1] + 'px';
+    });
+    var tip = $('mapTip');
+    function hover(evt) {
+      var rect = cv.getBoundingClientRect(), cxp = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left, cyp = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+      var id = GEO.idAt(cxp / s, cyp / s);
+      if (id <= 0) { tip.hidden = true; return; }
+      var code = GEO.codes[id - 1], v = M[code];
+      tip.textContent = ''; tip.appendChild(el('b', '', name(code)));
+      tip.appendChild(el('span', '', v ? num(v) + ' ' + T[lang].visitors : T[lang].noVisitors));
+      tip.style.left = Math.max(80, Math.min(W - 80, cxp)) + 'px'; tip.style.top = (cyp + off) + 'px'; tip.hidden = false;
+    }
+    cv.addEventListener('mousemove', hover); cv.addEventListener('touchstart', hover, { passive: true });
+    cv.addEventListener('mouseleave', function () { tip.hidden = true; });
+  }
+  function regions() {
+    var box = $('regions'), M = mapData(), total = 0, sums = {}, t = T[lang];
+    Object.keys(M).forEach(function (c) { total += M[c]; });
+    var used = {};
+    REGIONS.forEach(function (g) { sums[g.k] = 0; g.c.forEach(function (c) { if (M[c]) { sums[g.k] += M[c]; used[c] = 1; } }); });
+    sums.rOther = 0; Object.keys(M).forEach(function (c) { if (!used[c]) sums.rOther += M[c]; });
+    box.textContent = '';
+    ['rRU', 'rCIS', 'rEU', 'rME', 'rOther'].forEach(function (k) {
+      var p = sums[k] / total * 100, d = el('div', 'region');
+      d.appendChild(el('span', 'cap', t[k]));
+      var v = el('span', 'v'); v.appendChild(document.createTextNode(Math.round(p))); v.appendChild(el('span', 'u', '%')); d.appendChild(v);
+      d.appendChild(bar(p)); box.appendChild(d);
+    });
+    $('mapSub').textContent = fill(t.mapSub, { n: D.map.length });
+  }
+
+  /* ---------- area chart, one linear scale for marks, ticks and labels ---------- */
+  var NS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function niceMax(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+  function chart() {
+    var plot = $('plot'), tip = $('tip'), W = plot.clientWidth, H = plot.clientHeight;
+    var old = plot.querySelector('svg'); if (old) old.remove();
+    var pad = { l: 40, r: 8, t: 10, b: 24 }, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    var data = D.daily, n = data.length, vmax = niceMax(Math.max.apply(null, data.map(function (d) { return d[1]; })));
+    function x(i) { return pad.l + (n === 1 ? 0 : i / (n - 1) * iw); }
+    function y(v) { return pad.t + ih - v / vmax * ih; }
+    var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T[lang].chartTitle });
+    var defs = sv('defs', {}), g = sv('linearGradient', { id: 'fillg', x1: 0, y1: 0, x2: 0, y2: 1 });
+    g.appendChild(sv('stop', { offset: '0%', 'stop-color': '#ff6b21', 'stop-opacity': '.38' }));
+    g.appendChild(sv('stop', { offset: '100%', 'stop-color': '#ff6b21', 'stop-opacity': '0' }));
+    defs.appendChild(g); svg.appendChild(defs);
+    for (var k = 0; k <= 4; k++) {
+      var v = vmax / 4 * k, yy = y(v);
+      svg.appendChild(sv('line', { x1: pad.l, x2: W - pad.r, y1: yy, y2: yy, stroke: 'var(--grid)', 'stroke-width': 1 }));
+      var tl = sv('text', { x: pad.l - 8, y: yy + 4, 'text-anchor': 'end', fill: 'var(--ink-3)', 'font-size': 11, 'font-family': 'var(--font-mono)' });
+      tl.textContent = v >= 1000 ? (v / 1000).toLocaleString(loc()) + (lang === 'ru' ? ' тыс' : 'k') : v; svg.appendChild(tl);
+    }
+    var step = Math.max(1, Math.round(n / Math.max(2, Math.floor(iw / 70))));
+    for (var i = 0; i < n; i += step) {
+      if (n - 1 - i < step * 0.6) continue;
+      var xl = sv('text', { x: x(i), y: H - 6, 'text-anchor': 'middle', fill: 'var(--ink-3)', 'font-size': 11, 'font-family': 'var(--font-mono)' });
+      xl.textContent = dShort(data[i][0]); svg.appendChild(xl);
+    }
+    var last = sv('text', { x: x(n - 1), y: H - 6, 'text-anchor': 'end', fill: 'var(--ink-3)', 'font-size': 11, 'font-family': 'var(--font-mono)' });
+    last.textContent = dShort(data[n - 1][0]); svg.appendChild(last);
+    var line = '';
+    data.forEach(function (d, i) { line += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(d[1]).toFixed(1); });
+    var area = line + 'L' + x(n - 1).toFixed(1) + ' ' + y(0) + 'L' + x(0).toFixed(1) + ' ' + y(0) + 'Z';
+    svg.appendChild(sv('path', { d: area, fill: 'url(#fillg)' }));
+    svg.appendChild(sv('path', { d: line, fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    var lx = x(n - 1), ly = y(data[n - 1][1]);
+    svg.appendChild(sv('circle', { cx: lx, cy: ly, r: 7, fill: 'var(--accent)', 'fill-opacity': '.2' }));
+    svg.appendChild(sv('circle', { cx: lx, cy: ly, r: 3.5, fill: 'var(--accent)', stroke: 'var(--panel)', 'stroke-width': 1.5 }));
+    var guide = sv('line', { y1: pad.t, y2: pad.t + ih, stroke: 'var(--ink-3)', 'stroke-dasharray': '3 3', visibility: 'hidden' });
+    var dot = sv('circle', { r: 4, fill: 'var(--ink)', stroke: 'var(--accent)', 'stroke-width': 2, visibility: 'hidden' });
+    svg.appendChild(guide); svg.appendChild(dot);
+    var hit = sv('rect', { x: pad.l, y: pad.t, width: Math.max(0, iw), height: Math.max(0, ih), fill: 'transparent' });
+    function show(evt) {
+      var r = svg.getBoundingClientRect(), px = (evt.touches ? evt.touches[0].clientX : evt.clientX) - r.left;
+      var i = Math.max(0, Math.min(n - 1, Math.round((px - pad.l) / iw * (n - 1)))), d = data[i];
+      guide.setAttribute('x1', x(i)); guide.setAttribute('x2', x(i)); guide.setAttribute('visibility', 'visible');
+      dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(d[1])); dot.setAttribute('visibility', 'visible');
+      tip.textContent = '';
+      tip.appendChild(el('b', '', num(d[1]))); tip.appendChild(el('span', '', dLong(d[0]) + (i === n - 1 ? ', ' + T[lang].tipToday : '')));
+      tip.style.left = Math.max(70, Math.min(W - 70, x(i))) + 'px'; tip.style.top = y(d[1]) + 'px'; tip.hidden = false;
+    }
+    function hide() { guide.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); tip.hidden = true; }
+    hit.addEventListener('mousemove', show); hit.addEventListener('touchstart', show, { passive: true });
+    hit.addEventListener('mouseleave', hide);
+    svg.appendChild(hit);
+    plot.insertBefore(svg, tip);
+  }
+
+  /* ---------- ads by country ---------- */
+  function ads() {
+    var A = D.ads, t = T[lang], fx = A.rate;
+    var F = A.funnel, totalUsd = A.spendRub / fx + (A.googleUsd || 0), avgStart = totalUsd / F.started;
+    $('aReg').textContent = usd(totalUsd / (A.regs - (A.preAds || 0)), 2);
+    $('aStart').textContent = usd(avgStart, 2);
+    $('aConv').textContent = dec(F.started / F.visitors * 100, 1) + '%';
+    $('aSpend').textContent = '$' + num(Math.round(totalUsd));
+    $('aSub').textContent = fill(t.aSub, { a: dShort(A.from), g: dShort(A.googleFrom), b: dShort(A.asOf) });
+    var tb = $('atable'); tb.textContent = '';
+    var h = el('div', 'arow h'); h.appendChild(el('span', '', '')); h.appendChild(el('span', '', t.hCountry));
+    [t.hSpend, t.hConv, t.hStart].forEach(function (x) { h.appendChild(el('span', 'r', x)); }); tb.appendChild(h);
+    A.rows.forEach(function (r) {
+      var spend = r[1] / fx + (r[4] || 0), cost = spend / r[2], row = el('div', 'arow');
+      row.appendChild(flag(r[0])); row.appendChild(el('span', 'nm', name(r[0])));
+      row.appendChild(el('span', 'r', '$' + num(Math.round(spend))));
+      row.appendChild(el('span', 'r', dec(r[3], 1) + '%'));
+      row.appendChild(el('span', 'r ' + (cost < avgStart ? 'good' : 'mid-v'), usd(cost, 2)));
+      tb.appendChild(row);
+    });
+    $('aNote').textContent = fill(t.aNote, { r: num(A.regs - (A.preAds || 0)), p: num(A.preAds || 0), s: dLong(A.adsStart || A.from), x: A.rate });
+  }
+
+  function funnel() {
+    var A = D.ads, F = A.funnel, t = T[lang], fx = A.rate;
+    var spend = A.spendRub / fx + (A.googleUsd || 0), clicks = F.clicksDirect + F.clicksGoogle, adsRegs = A.regs - A.preAds;
+    $('fSub').textContent = fill(t.fSub, { a: dShort(A.from), b: dShort(A.asOf) });
+    var box = $('steps'); box.textContent = '';
+    function step(cap, val, price, priceLabel, extra, hl) {
+      var d = el('div', 'step' + (hl ? ' hl' : ''));
+      d.appendChild(el('span', 'cap', cap)); d.appendChild(el('span', 'v', num(val)));
+      var pr = el('span', 'pr'); pr.appendChild(document.createTextNode(priceLabel + ' ')); pr.appendChild(el('b', '', (hl ? '≈' : '') + usd(price, 2))); d.appendChild(pr);
+      if (extra) d.appendChild(el('span', 'sub', extra));
+      box.appendChild(d);
+    }
+    function arrow(p) {
+      var a = el('div', 'arrow'); a.appendChild(el('span', 'p', dec(p, 1) + '%')); a.appendChild(el('span', 'l', t.conv));
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 40 10'); svg.setAttribute('aria-hidden', 'true');
+      var ln = document.createElementNS('http://www.w3.org/2000/svg', 'path'); ln.setAttribute('d', 'M1 5 H36 M31 1 L37 5 L31 9'); ln.setAttribute('fill', 'none'); ln.setAttribute('stroke', 'currentColor'); ln.setAttribute('stroke-width', '1.5');
+      svg.appendChild(ln); a.insertBefore(svg, a.firstChild); box.appendChild(a);
+    }
+    step(t.fVis, F.visitors, spend / clicks, t.fClick, fill(t.fClicks, { n: num(clicks) }));
+    arrow(F.started / F.visitors * 100);
+    step(t.fStart, F.started, spend / F.started, t.fStartP);
+    arrow(A.regs / F.started * 100);
+    step(t.fReg, A.regs, spend / adsRegs, t.fRegP, fill(t.fAds, { n: num(adsRegs), p: num(A.preAds) }), true);
+    var fl = $('fLoss'); fl.textContent = ''; fl.appendChild(el('b', '', t.fLossB + ' ')); fl.appendChild(document.createTextNode(t.fLoss));
+    $('fNote').textContent = fill(t.fNote, { x: A.rate, r: num(adsRegs), p: num(A.preAds), s: dLong(A.adsStart) });
+  }
+
+  function retention() {
+    var t = T[lang], R = D.users.retention, rmax = 0, pc = function (x) { return x[0] / x[1] * 100; };
+    ['all', 'wrote'].forEach(function (g) { ['d1', 'd7', 'd30'].forEach(function (k) { rmax = Math.max(rmax, pc(R[g][k])); }); });
+    $('rBig').textContent = ''; $('rBig').appendChild(document.createTextNode(dec(pc(D.users.returned), 1))); $('rBig').appendChild(el('span', 'u', '%'));
+    $('rBase').textContent = fill(t.rBase, { a: num(D.users.returned[0]), b: num(D.users.returned[1]) });
+    [['rAll', 'all'], ['rWrote', 'wrote']].forEach(function (pair) {
+      var row = $(pair[0]); row.textContent = '';
+      row.appendChild(el('span', 'lbl', t[pair[0]]));
+      ['d1', 'd7', 'd30'].forEach(function (k) {
+        var x = R[pair[1]][k], c = el('div', 'cell');
+        c.appendChild(el('span', 'p', dec(pc(x), 1) + '%'));
+        c.appendChild(bar(pc(x) / rmax * 100));
+        c.appendChild(el('span', 'n', num(x[0]) + ' ' + t.of + ' ' + num(x[1])));
+        row.appendChild(c);
+      });
+    });
+  }
+
+  function render() {
+    var t = T[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-t]').forEach(function (e) { e.textContent = t[e.getAttribute('data-t')]; });
+    $('tagline').textContent = t.tagline;
+    $('lang-ru').setAttribute('aria-pressed', String(lang === 'ru'));
+    $('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
+    ['all', 'week', 'today'].forEach(function (p) { $('tab-' + p).textContent = t[p]; });
+    odometer(D.users.value);
+    $('usersTag').textContent = fill(t.usersTag, { d: dShort(D.users.asOf) });
+    $('usersSub').textContent = t.usersSub;
+    $('m1').textContent = num(D.users.active30);
+    $('m2').textContent = num(D.users.active7);
+    $('m3').textContent = '≈' + num(Math.round(D.users.messages / 1000)) + (lang === 'ru' ? ' ' : '') + t.k;
+    $('k1').textContent = num(D.visitorsTotal);
+    $('k1s').textContent = fill(t.k1s, { d: dLong(D.since) });
+    $('k2').textContent = D.countriesLabel;
+    $('k3').textContent = ''; $('k3').appendChild(document.createTextNode(share('all'))); $('k3').appendChild(el('span', 'u', '%'));
+    $('k4').textContent = num(D.periods.today.visitors);
+    $('k4s').textContent = fill(t.k4s, { t: hhmm(D.updatedAt) });
+    $('chartSub').textContent = fill(t.chartSub, { a: dShort(D.daily[0][0]), b: dShort(D.daily[D.daily.length - 1][0]) });
+    var f = $('foot'); f.textContent = '';
+    t.foot.forEach(function (line) { f.appendChild(el('span', '', fill(line, { since: dLong(D.since), asOf: dLong(D.users.asOf), ads: dLong(D.ads.asOf) }))); });
+    rows(); regions(); ads(); funnel(); retention(); chart(); drawMap(); stamp();
+  }
+
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-p]'); if (!b) return; period = b.getAttribute('data-p'); rows();
+  });
+  [$('lang-ru'), $('lang-en')].forEach(function (b) {
+    b.addEventListener('click', function () {
+      lang = b.getAttribute('data-lang');
+      try { localStorage.setItem('lifeos-board-lang', lang); } catch (e) {}
+      render();
+    });
+  });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { chart(); drawMap(); }, 150); });
+  render();
+  loadWorld(function (world) {
+    if (!world) { mapFailed = true; drawMap(); return; }
+    try { prep(world); } catch (e) { mapFailed = true; }
+    drawMap();
+  });
+  function load() {
+    fetch(DATA_URL + (DATA_URL.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { D = j; render(); })
+      .catch(function (e) { if (window.console) console.warn('stats.json не загрузился, показаны запасные данные', e); });
+  }
+  load();
+  setInterval(load, REFRESH_MS);
+  setInterval(stamp, 30000);
+})();
+</script>
+
+</body>
+</html>
